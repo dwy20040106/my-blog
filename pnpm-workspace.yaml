@@ -1,0 +1,4 @@
+# pnpm 项目级配置（pnpm 10+）
+# esbuild 需要执行 postinstall 脚本来安装平台二进制，不放行会导致构建失败
+allowBuilds:
+  esbuild: true
