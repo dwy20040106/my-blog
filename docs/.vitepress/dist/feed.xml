@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>YuJian</title>
+        <link>https://codeflagai.top</link>
+        <description>我只想爱你~</description>
+        <lastBuildDate>Mon, 26 Oct 2026 03:14:20 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>zh-Hans</language>
+        <image>
+            <title>YuJian</title>
+            <url>/images/ava.jpg</url>
+            <link>https://codeflagai.top</link>
+        </image>
+        <copyright>Copyright© 2026-present YuJian</copyright>
+    </channel>
+</rss>

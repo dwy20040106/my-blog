@@ -89,7 +89,7 @@ out
 
 # Nuxt.js build / generate output
 .nuxt
-dist
+/dist
 
 # Gatsby files
 .cache/
@@ -130,7 +130,8 @@ dist
 .pnp.*
 
 # vitepress
-docs/.vitepress/dist
+# 构建产物 dist 暂时纳入 Git，便于服务器直接 git pull 部署
+# docs/.vitepress/dist
 cache
 .vercel
 .env*.local
