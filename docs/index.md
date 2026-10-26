@@ -1,7 +1,5 @@
 ---
 layout: page
-pageClass: home-full
-footer: false
 editLink: false
 lastUpdated: false
 ---
@@ -107,12 +105,6 @@ class="post-like"
 </section>
 </div>
 
-</div>
-
-<div class="home-beian">
-<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">赣ICP备2026021839号-1</a>
-<span>·</span>
-<a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=36112502000138" target="_blank" rel="noopener noreferrer">赣公网安备36112502000138号</a>
 </div>
 </div>
 
