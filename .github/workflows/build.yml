@@ -11,7 +11,7 @@ on:
 permissions:
   contents: write
 
-# 防止多个构建同时发布，避免产物互相覆盖
+# 防止多个构建同时发布
 concurrency:
   group: vitepress-build
   cancel-in-progress: false
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 20
 
-      # 3. 配置 pnpm 9
+      # 3. 配置 pnpm 12.18.0
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -76,20 +76,27 @@ jobs:
       # 8. 发布到 deploy-dist 分支
       - name: Publish dist branch
         run: |
+          # 配置 Git 用户
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 创建独立的无历史分支
+          # 清除构建产生的工作区修改
+          git reset --hard HEAD
+          git clean -fdx
+
+          # 创建独立的 deploy-dist 分支
           git switch --orphan deploy-dist
 
-          # 清理原源码文件
+          # 清空当前分支文件
           git rm -rf . || true
           git clean -fdx
 
-          # 放入构建后的静态文件
+          # 复制构建产物
           cp -a /tmp/deploy-dist/. .
 
-          # 提交并推送
+          # 提交构建产物
           git add -A
           git commit -m "Deploy dist from ${GITHUB_SHA}"
+
+          # 强制更新远程 deploy-dist 分支
           git push origin deploy-dist --force
