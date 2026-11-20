@@ -1,5 +1,5 @@
 
-name: Build VitePress and Publish dist
+name: Build VitePress and Update dist
 
 on:
   push:
@@ -7,11 +7,10 @@ on:
       - main
   workflow_dispatch:
 
-# 允许 GitHub Actions 推送 deploy-dist 分支
 permissions:
   contents: write
 
-# 防止多个构建同时发布
+# 防止多个构建同时提交
 concurrency:
   group: vitepress-build
   cancel-in-progress: false
@@ -21,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取 main 分支源码
+      # 1. 拉取 main 分支
       - name: Checkout source
         uses: actions/checkout@v4
         with:
@@ -34,7 +33,7 @@ jobs:
         with:
           node-version: 20
 
-      # 3. 配置 pnpm 12.18.0
+      # 3. 配置 pnpm
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -63,40 +62,32 @@ jobs:
           fi
 
           echo "Build successful!"
-          echo "Build output size:"
           du -sh docs/.vitepress/dist
 
-      # 7. 暂存构建产物
-      - name: Prepare deploy files
-        run: |
-          mkdir -p /tmp/deploy-dist
-          cp -a docs/.vitepress/dist/. /tmp/deploy-dist/
-          touch /tmp/deploy-dist/.nojekyll
-
-      # 8. 发布到 deploy-dist 分支
-      - name: Publish dist branch
+      # 7. 删除旧 dist，保留最新构建产物
+      - name: Update dist in main
         run: |
           # 配置 Git 用户
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 清除构建产生的工作区修改
-          git reset --hard HEAD
-          git clean -fdx
+          # 添加 GitHub Pages 兼容文件
+          touch docs/.vitepress/dist/.nojekyll
 
-          # 创建独立的 deploy-dist 分支
-          git switch --orphan deploy-dist
+          # 删除 Git 跟踪的旧 dist
+          git rm -rf docs/.vitepress/dist
 
-          # 清空当前分支文件
-          git rm -rf . || true
-          git clean -fdx
+          # 重新添加刚刚构建好的 dist
+          git add -f docs/.vitepress/dist
 
-          # 复制构建产物
-          cp -a /tmp/deploy-dist/. .
+          # 如果没有变化，则不提交
+          if git diff --cached --quiet; then
+            echo "No dist changes to commit."
+            exit 0
+          fi
 
           # 提交构建产物
-          git add -A
-          git commit -m "Deploy dist from ${GITHUB_SHA}"
+          git commit -m "chore: update VitePress dist [skip ci]"
 
-          # 强制更新远程 deploy-dist 分支
-          git push origin deploy-dist --force
+          # 推送到 main
+          git push origin HEAD:main
