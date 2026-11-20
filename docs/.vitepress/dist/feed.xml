@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+    <channel>
+        <title>YuJian</title>
+        <link>https://codeflagai.top</link>
+        <description>我只想爱你~</description>
+        <lastBuildDate>Fri, 20 Nov 2026 08:59:16 GMT</lastBuildDate>
+        <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+        <generator>https://github.com/jpmonette/feed</generator>
+        <language>zh-Hans</language>
+        <image>
+            <title>YuJian</title>
+            <url>/images/ava.jpg</url>
+            <link>https://codeflagai.top</link>
+        </image>
+        <copyright>Copyright© 2026-present YuJian</copyright>
+        <item>
+            <title><![CDATA[我的博客]]></title>
+            <link>https://codeflagai.top/posts/2026/11/20/我的博客</link>
+            <guid>https://codeflagai.top/posts/2026/11/20/我的博客</guid>
+            <pubDate>Fri, 20 Nov 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[<h1 id="我的博客" tabindex="-1">我的博客 <a class="header-anchor" href="#我的博客" aria-label="Permalink to &quot;我的博客&quot;">&ZeroWidthSpace;</a></h1>
+<!-- DESC SEP -->
+<p>我在想写点什么</p>
+<!-- DESC SEP -->
+]]></description>
+            <content:encoded><![CDATA[<h1 id="我的博客" tabindex="-1">我的博客 <a class="header-anchor" href="#我的博客" aria-label="Permalink to &quot;我的博客&quot;">&ZeroWidthSpace;</a></h1>
+<!-- DESC SEP -->
+<p>我在想写点什么</p>
+<!-- DESC SEP -->
+<hr>
+<p>我的性格在于人,大多数时候我应该算是外向的,但是我实际是内向的,我不知道这么去解释,人嘛,都善于去假装,
+面对需求我也在想推脱,但是Ai的盛行让代码变的简单,编程成为了用强大的逻辑去概述功能,然后交给Ai,去让他实现,在此之前人所要做的事情都可以让Ai进行完成,所以我尽可能的接下需求,一个一个去完成
+我喜欢计划,未来的计划太过飘渺,谁的未来都不可能一成不变,我只想计划眼前的事情,例如一周的需求,自己要处理的问题,
+我在想记录,记录故事,关于我的故事</p>
+]]></content:encoded>
+        </item>
+    </channel>
+</rss>
