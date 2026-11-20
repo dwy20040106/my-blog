@@ -5,12 +5,13 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
+# 允许 GitHub Actions 推送 deploy-dist 分支
 permissions:
   contents: write
 
+# 防止多个构建同时发布，避免产物互相覆盖
 concurrency:
   group: vitepress-build
   cancel-in-progress: false
@@ -20,26 +21,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 获取 main 分支源码
+      # 1. 拉取 main 分支源码
       - name: Checkout source
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 1
 
-      # 2. 安装 Node.js
+      # 2. 配置 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # 3. 启用 pnpm
+      # 3. 配置 pnpm 9
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
           run_install: false
 
-      # 4. 安装项目依赖
+      # 4. 安装依赖
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -47,7 +49,7 @@ jobs:
       - name: Build VitePress
         run: pnpm run docs:build
 
-      # 6. 检查构建结果
+      # 6. 检查构建产物
       - name: Verify dist
         run: |
           if [ ! -f docs/.vitepress/dist/index.html ]; then
@@ -61,9 +63,10 @@ jobs:
           fi
 
           echo "Build successful!"
+          echo "Build output size:"
           du -sh docs/.vitepress/dist
 
-      # 7. 准备打包文件
+      # 7. 暂存构建产物
       - name: Prepare deploy files
         run: |
           mkdir -p /tmp/deploy-dist
@@ -76,14 +79,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          # 创建独立的无历史分支
           git switch --orphan deploy-dist
 
+          # 清理原源码文件
           git rm -rf . || true
           git clean -fdx
 
+          # 放入构建后的静态文件
           cp -a /tmp/deploy-dist/. .
 
+          # 提交并推送
           git add -A
           git commit -m "Deploy dist from ${GITHUB_SHA}"
-
           git push origin deploy-dist --force
