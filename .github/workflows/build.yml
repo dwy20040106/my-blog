@@ -1,9 +1,11 @@
+
 name: Build VitePress and Publish dist
 
 on:
   push:
     branches:
       - main
+
   workflow_dispatch:
 
 permissions:
@@ -18,56 +20,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取 main 源码
+      # 1. 获取 main 分支源码
       - name: Checkout source
         uses: actions/checkout@v4
         with:
           ref: main
-          persist-credentials: true
 
-      # 2. 安装 Node
+      # 2. 安装 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
-      # 3. 安装依赖
+      # 3. 启用 pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      # 4. 安装项目依赖
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      # 4. 构建 VitePress
+      # 5. 构建 VitePress
       - name: Build VitePress
-        run: npm run docs:build
+        run: pnpm run docs:build
 
-      # 5. 验证构建结果
+      # 6. 检查构建结果
       - name: Verify dist
         run: |
-          test -f docs/.vitepress/dist/index.html
-          test -d docs/.vitepress/dist
-          echo "Build success"
+          if [ ! -f docs/.vitepress/dist/index.html ]; then
+            echo "Build failed: index.html not found"
+            exit 1
+          fi
+
+          if [ ! -s docs/.vitepress/dist/index.html ]; then
+            echo "Build failed: index.html is empty"
+            exit 1
+          fi
+
+          echo "Build successful!"
           du -sh docs/.vitepress/dist
 
-      # 6. 备份构建产物到临时目录
+      # 7. 准备打包文件
       - name: Prepare deploy files
         run: |
           mkdir -p /tmp/deploy-dist
           cp -a docs/.vitepress/dist/. /tmp/deploy-dist/
+          touch /tmp/deploy-dist/.nojekyll
 
-      # 7. 创建 deploy-dist 分支并发布
+      # 8. 发布到 deploy-dist 分支
       - name: Publish dist branch
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git switch --orphan deploy-dist
+
           git rm -rf . || true
           git clean -fdx
 
           cp -a /tmp/deploy-dist/. .
 
-          touch .nojekyll
-
           git add -A
           git commit -m "Deploy dist from ${GITHUB_SHA}"
+
           git push origin deploy-dist --force
