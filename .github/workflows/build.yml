@@ -10,7 +10,7 @@ on:
 permissions:
   contents: write
 
-# 防止多个构建同时提交
+# 防止多个构建同时运行
 concurrency:
   group: vitepress-build
   cancel-in-progress: false
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取 main 分支
+      # 1. 获取 main 源码
       - name: Checkout source
         uses: actions/checkout@v4
         with:
@@ -48,46 +48,89 @@ jobs:
       - name: Build VitePress
         run: pnpm run docs:build
 
-      # 6. 检查构建产物
+      # 6. 验证构建产物
       - name: Verify dist
         run: |
-          if [ ! -f docs/.vitepress/dist/index.html ]; then
-            echo "Build failed: index.html not found"
+          set -e
+
+          DIST="docs/.vitepress/dist"
+
+          if [ ! -s "$DIST/index.html" ]; then
+            echo "ERROR: index.html missing or empty"
             exit 1
           fi
 
-          if [ ! -s docs/.vitepress/dist/index.html ]; then
-            echo "Build failed: index.html is empty"
-            exit 1
-          fi
+          echo "Total files:"
+          find "$DIST" -type f | wc -l
 
-          echo "Build successful!"
-          du -sh docs/.vitepress/dist
+          echo "HTML files:"
+          find "$DIST" -type f -iname "*.html" | wc -l
 
-      # 7. 删除旧 dist，保留最新构建产物
+          echo "Image files:"
+          find "$DIST" -type f \
+            \( -iname "*.png" -o -iname "*.jpg" \
+            -o -iname "*.jpeg" -o -iname "*.gif" \
+            -o -iname "*.webp" -o -iname "*.svg" \
+            -o -iname "*.ico" \) | wc -l
+
+          echo "All build files:"
+          du -sh "$DIST"
+
+      # 7. 备份完整构建产物到临时目录
+      - name: Backup complete dist
+        run: |
+          set -e
+
+          mkdir -p /tmp/vitepress-dist
+
+          cp -a docs/.vitepress/dist/. /tmp/vitepress-dist/
+
+          touch /tmp/vitepress-dist/.nojekyll
+
+          echo "Backup completed."
+          find /tmp/vitepress-dist -type f | wc -l
+
+      # 8. 更新 main 分支中的 dist
       - name: Update dist in main
         run: |
-          # 配置 Git 用户
+          set -e
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 添加 GitHub Pages 兼容文件
-          touch docs/.vitepress/dist/.nojekyll
+          # 检查备份文件
+          test -s /tmp/vitepress-dist/index.html
 
-          # 删除 Git 跟踪的旧 dist
-          git rm -rf docs/.vitepress/dist
+          # 删除旧 dist 的 Git 索引记录，但保留工作区文件
+          git rm -r -f --cached --ignore-unmatch docs/.vitepress/dist
 
-          # 重新添加刚刚构建好的 dist
+          # 将完整构建产物恢复到原目录
+          mkdir -p docs/.vitepress/dist
+
+          cp -a /tmp/vitepress-dist/. docs/.vitepress/dist/
+
+          # 强制添加所有新文件，包括图片、HTML、字体等
           git add -f docs/.vitepress/dist
 
-          # 如果没有变化，则不提交
+          # 显示提交文件数量
+          echo "Files to commit:"
+          git diff --cached --numstat | wc -l
+
+          echo "New image files:"
+          find docs/.vitepress/dist -type f \
+            \( -iname "*.png" -o -iname "*.jpg" \
+            -o -iname "*.jpeg" -o -iname "*.gif" \
+            -o -iname "*.webp" -o -iname "*.svg" \
+            -o -iname "*.ico" \) | wc -l
+
+          # 如果没有变化则不提交
           if git diff --cached --quiet; then
-            echo "No dist changes to commit."
+            echo "No changes in dist."
             exit 0
           fi
 
-          # 提交构建产物
+          # 提交最新构建产物
           git commit -m "chore: update VitePress dist [skip ci]"
 
-          # 推送到 main
+          # 推送 main
           git push origin HEAD:main
